@@ -5,23 +5,32 @@ Release: https://github.com/lemon5227/computer-use-ultra/releases/tag/v0.1.0
 
 ## 中文
 
-开源 Computer Use Ultra 🚀
+Codex 操作 Chrome，还在每一步等 1.5 秒？
 
-让 Codex 操作 Chrome 更快：
-• Jev 一次选动作+目标
-• 复用 Accessibility Tree
-• 缓存状态，验证进度
-• 不启动第二浏览器，不用 Playwright
+我开源了 Computer Use Ultra 🚀
 
-基准：新 Jev 决策中位 393ms；比旧 Overlay 的 1.563s 观测值低约75%*。
-*口径不同：393ms仅算决策；1.563s含 observe/action/verify。
+新 Jev 决策：393ms 中位
+旧 Jev Overlay：1.563s
+≈ 4× 更快 / 延迟降低约 75%*
+
+复用当前 Chrome Accessibility Tree，缓存状态。
+不启动第二浏览器，不用 Playwright。
+
+*统计口径不同：新值是 decision-only，旧值含 observe/action/verify。
 https://github.com/lemon5227/computer-use-ultra
 
 ## English
 
-Computer Use Ultra is open source 🚀
+Is Codex still waiting 1.5s to act in Chrome?
 
-Faster Codex + Chrome actions.
-New Jev decision path: 393ms median — ~75% below the old Overlay’s 1.563s*.
-*Decision-only vs. observe/action/verify.
+I open-sourced Computer Use Ultra 🚀
+
+New Jev decision: 393ms median
+Old Jev Overlay: 1.563s
+≈4× faster / ~75% lower latency*
+
+Current Chrome Accessibility Tree. Cached state.
+No second browser. No Playwright.
+
+*Different scopes: new is decision-only; old includes observe/action/verify.
 https://github.com/lemon5227/computer-use-ultra
