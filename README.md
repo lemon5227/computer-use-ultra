@@ -19,10 +19,10 @@ This is not an official OpenAI or Codex product.
 npm install -g computer-use-ultra && computer-use-ultra setup
 ```
 
-`setup` installs the Codex Skill automatically and chooses the planner:
+`setup` installs the Codex Skill automatically. If no Jev key is already configured, it asks you to paste one and saves it locally. Press Enter without a key only if you want to use the local Laya fallback:
 
-- Jev when `AI_GATEWAY_API_KEY`/`VERCEL_OIDC_TOKEN` already exists or `--api-key` is supplied.
-- Local Laya when no Jev key is available. Laya needs Python and its local model; setup reports the exact install command if it is missing.
+- Jev when `AI_GATEWAY_API_KEY`/`VERCEL_OIDC_TOKEN` already exists, you paste a key, or `--api-key` is supplied.
+- Local Laya only when no Jev key is supplied and you explicitly continue without one. Laya needs Python and its local model; setup reports the exact install command if it is missing.
 
 To explicitly provide a Jev key:
 
@@ -62,9 +62,9 @@ The report shows the selected planner, Skill installation, Jev credential presen
 https://github.com/lemon5227/computer-use-ultra/blob/main/README.md
 
 请帮我安装并启用它来操作当前 Chrome。
-如果本机已经有 Jev/Gateway Key，就使用 Jev；如果没有，就检查并使用本地 Laya。
+安装时直接询问我 Jev/Gateway Key；我输入后保存并使用 Jev。
 安装完成后，使用 Computer Use Ultra Skill，不要启动第二个浏览器，不要使用 Playwright。
-先运行 computer-use-ultra doctor，并告诉我最终使用的是 Jev 还是 Laya。
+先运行 computer-use-ultra doctor，并告诉我最终使用的是 Jev。
 ```
 
 ## Computer Use entrypoint

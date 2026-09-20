@@ -28,5 +28,6 @@ export type CliArgs = {
 };
 export declare function formatDoctorReport(input: DoctorReportInput): string;
 export declare function formatSetupReport(input: SetupReportInput): string;
+export declare function promptForJevKey(ask: (message: string) => Promise<string>): Promise<string | undefined>;
 export declare function parseCliArgs(argv: string[]): CliArgs;
 //# sourceMappingURL=cli.d.ts.map

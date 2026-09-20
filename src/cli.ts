@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { access } from 'node:fs/promises';
 import { homedir } from 'node:os';
+import { createInterface } from 'node:readline/promises';
 import { join } from 'node:path';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -71,6 +72,13 @@ export function formatSetupReport(input: SetupReportInput): string {
   return lines.join('\n');
 }
 
+export async function promptForJevKey(
+  ask: (message: string) => Promise<string>,
+): Promise<string | undefined> {
+  const value = (await ask('Enter your Jev/Gateway key (press Enter to use local Laya): ')).trim();
+  return value || undefined;
+}
+
 export function parseCliArgs(argv: string[]): CliArgs {
   const [first, ...rest] = argv;
   const args: CliArgs = {
@@ -113,6 +121,15 @@ This package supplies the Jev planner and does not launch a browser itself.
 `;
 }
 
+async function promptForJevKeyFromTerminal(): Promise<string | undefined> {
+  const readline = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    return await promptForJevKey((message) => readline.question(message));
+  } finally {
+    readline.close();
+  }
+}
+
 async function doctor(): Promise<void> {
   const health = await new JevVercelClassifier().health();
   const planner = await loadPlannerMode();
@@ -137,7 +154,14 @@ async function setup(args: CliArgs): Promise<void> {
   const skills = await installPackagedSkills();
   if (args.apiKey) await writeGatewayCredential(args.apiKey, { force: args.forceCredential });
 
-  const credential = await loadGatewayCredential();
+  let credential = await loadGatewayCredential();
+  if (!credential && !args.apiKey && !args.noPrompt && args.planner !== 'laya' && process.stdin.isTTY && process.stdout.isTTY) {
+    const promptedKey = await promptForJevKeyFromTerminal();
+    if (promptedKey) {
+      await writeGatewayCredential(promptedKey, { force: args.forceCredential });
+      credential = await loadGatewayCredential();
+    }
+  }
   let laya = await detectLaya();
   const shouldUseLaya = args.planner === 'laya' || (args.planner === 'auto' && !credential);
   if (shouldUseLaya && !laya.available && !args.noPrompt) {

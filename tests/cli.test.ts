@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDoctorReport, formatSetupReport, parseCliArgs } from '../src/cli.js';
+import { formatDoctorReport, formatSetupReport, parseCliArgs, promptForJevKey } from '../src/cli.js';
 
 describe('computer-use-ultra doctor', () => {
   it('reports health without exposing the credential', () => {
@@ -30,6 +30,17 @@ describe('computer-use-ultra doctor', () => {
 });
 
 describe('computer-use-ultra setup', () => {
+  it('accepts a pasted Jev key and treats blank input as local fallback', async () => {
+    let promptText = '';
+    const key = await promptForJevKey(async (message) => {
+      promptText = message;
+      return '  key-123  ';
+    });
+    expect(key).toBe('key-123');
+    expect(promptText).toContain('Jev');
+    await expect(promptForJevKey(async () => '   ')).resolves.toBeUndefined();
+  });
+
   it('defaults to automatic Jev-or-Laya selection', () => {
     expect(parseCliArgs(['setup'])).toMatchObject({
       command: 'setup',
