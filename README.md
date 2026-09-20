@@ -53,18 +53,25 @@ computer-use-ultra doctor
 
 The report shows the selected planner, Skill installation, Jev credential presence, and Laya availability without printing the key. The key is read from the environment when available. In Codex `node_repl`, where the shell environment is isolated, the runtime also accepts an explicit `AI_GATEWAY_API_KEY=...` or `VERCEL_OIDC_TOKEN=...` assignment in `.env`, `~/.config/computer-use-ultra/credentials`, the legacy `~/.config/codex-chrome-fast/credentials`, `~/.zprofile`, or `~/.zshrc`. It parses the assignment without executing the shell file. Do not commit `.env`, print the key, or put it in a prompt.
 
-## 给 Codex 的安装说明
+## 给 Codex：把这段直接发给它
 
-不想解释项目用途时，把下面这段连同本 README 发给 Codex：
+使用者不需要理解 Jev、Laya 或配置文件。把本 README 的链接和下面这段话一起发给 Codex；安装过程中只需要在终端提示时粘贴 Jev/Gateway key：
 
 ```text
-请阅读 Computer Use Ultra README：
+请阅读并安装 Computer Use Ultra：
 https://github.com/lemon5227/computer-use-ultra/blob/main/README.md
 
-请帮我安装并启用它来操作当前 Chrome。
-安装时直接询问我 Jev/Gateway Key；我输入后保存并使用 Jev。
-安装完成后，使用 Computer Use Ultra Skill，不要启动第二个浏览器，不要使用 Playwright。
-先运行 computer-use-ultra doctor，并告诉我最终使用的是 Jev。
+请执行：
+1. 安装 npm 包 computer-use-ultra。
+2. 运行 computer-use-ultra setup。
+3. 当终端提示时，让我输入 Jev/Gateway key，并自动保存它；不要让我手动编辑环境变量或配置文件。
+4. 运行 computer-use-ultra doctor，确认 planner 是 jev。
+5. 安装并使用 Computer Use Ultra Skill，操作我当前的 Chrome 标签页。
+
+要求：
+- 使用 Codex Computer Use 和 @oai/sky 执行浏览器动作。
+- 不要启动第二个浏览器，不要使用 Playwright。
+- 默认使用 Jev；只有我明确要求时才使用本地 Laya。
 ```
 
 ## Computer Use entrypoint
