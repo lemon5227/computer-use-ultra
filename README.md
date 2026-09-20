@@ -119,6 +119,8 @@ The live Jev smoke test can consume provider credits. Browser interaction tests 
 
 The measured comparison with the original Jev Overlay path and the direct Computer Use executor is in [`outputs/computer-use-ultra-vs-original-2026-09-20.md`](outputs/computer-use-ultra-vs-original-2026-09-20.md). It includes the paired original scenario, the current combined-protocol decision latency, and the non-paired Chrome smoke-test caveat.
 
+The real Chrome Jev/Laya comparison is recorded in [`outputs/computer-use-ultra-real-chrome-jev-laya-2026-09-21.md`](outputs/computer-use-ultra-real-chrome-jev-laya-2026-09-21.md). It shows why local Laya remains opt-in for the full Chrome accessibility tree.
+
 ## Legacy name
 
 Older local checkouts may still use `codex-chrome-fast`. The runtime keeps that CLI alias and credential path while migrating to `computer-use-ultra`.
