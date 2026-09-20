@@ -1,0 +1,62 @@
+{
+  "name": "computer-use-ultra",
+  "version": "0.1.0",
+  "description": "An independent fast action-planning layer for Codex Computer Use",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "computer-use",
+    "chrome",
+    "jev",
+    "accessibility-tree"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "type": "module",
+  "main": "dist/computer-use/node-repl-entry.js",
+  "types": "dist/computer-use/node-repl-entry.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/computer-use/node-repl-entry.d.ts",
+      "import": "./dist/computer-use/node-repl-entry.js"
+    },
+    "./computer-use": {
+      "types": "./dist/computer-use/node-repl-entry.d.ts",
+      "import": "./dist/computer-use/node-repl-entry.js"
+    }
+  },
+  "files": [
+    "dist",
+    "skills",
+    "scripts",
+    "README.md",
+    "LICENSE",
+    ".env.example"
+  ],
+  "bin": {
+    "computer-use-ultra": "dist/cli.js",
+    "codex-chrome-fast": "dist/cli.js"
+  },
+  "scripts": {
+    "test:jev": "node scripts/test-jev.mjs",
+    "benchmark": "npm run build --silent && node scripts/benchmark.mjs",
+    "benchmark:live": "npm run build --silent && node scripts/benchmark.mjs --live",
+    "doctor": "npm run build --silent && node dist/cli.js doctor",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "chrome-fast": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/core tests/providers tests/runtime tests/computer-use tests/skills"
+  },
+  "dependencies": {
+    "@ai-sdk/gateway": "latest",
+    "ai": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
