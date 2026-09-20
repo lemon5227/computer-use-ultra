@@ -3,11 +3,11 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 describe('codex-chrome-fast skill contract', () => {
-  it('documents the Jev planner and bundled Computer Use executor boundary', async () => {
+  it('documents the planner and bundled Computer Use executor boundary', async () => {
     const content = await readFile(new URL('../../skills/codex-chrome-fast/SKILL.md', import.meta.url), 'utf8');
     for (const skillContent of [content]) {
       expect(skillContent).toContain('current Chrome');
-      expect(skillContent).toContain('one Jev decision per cycle');
+      expect(skillContent).toContain('one decision per cycle');
       expect(skillContent).toContain('no screenshot in the hot path');
       expect(skillContent).toContain('aggregate metrics');
       expect(skillContent).toContain('Playwright');
@@ -18,6 +18,7 @@ describe('codex-chrome-fast skill contract', () => {
     expect(content).toContain('node_repl');
     expect(content).toContain('@oai/sky');
     expect(content).toContain('Jev');
+    expect(content).toContain('Laya');
     expect(content).toContain('Accessibility Tree');
     expect(content).toContain('Playwright');
     expect(content).not.toContain('chrome_fast_run');
@@ -36,5 +37,6 @@ describe('codex-chrome-fast skill contract', () => {
     expect(publicSkill).toContain('computer-use-ultra');
     expect(readme).toContain('npm install -g computer-use-ultra');
     expect(readme).toContain('import("computer-use-ultra")');
+    expect(readme).toContain('computer-use-ultra setup');
   });
 });

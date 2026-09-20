@@ -1,4 +1,5 @@
 import { homedir } from 'node:os';
+import { readPlannerConfig, type PlannerMode } from '../setup.js';
 
 export type GatewayCredential = {
   value: string;
@@ -57,4 +58,10 @@ export async function loadGatewayCredential(cwd = '.'): Promise<GatewayCredentia
     if (parsed) return parsed;
   }
   return undefined;
+}
+
+export async function loadPlannerMode(): Promise<PlannerMode | undefined> {
+  const runtimeValue = typeof process === 'undefined' ? undefined : process.env.COMPUTER_USE_ULTRA_PLANNER;
+  if (runtimeValue === 'auto' || runtimeValue === 'jev' || runtimeValue === 'laya') return runtimeValue;
+  return readPlannerConfig();
 }

@@ -3,6 +3,9 @@ import type { SkyAdapter } from './sky-adapter.js';
 import { canExecute } from '../core/policy.js';
 import type { ClassificationResult, PageSnapshot } from '../core/types.js';
 import type { ActionClassifier, RecentAction } from '../providers/classifier.js';
+import { loadGatewayCredential, loadPlannerMode } from '../providers/gateway-auth.js';
+import { LayaLocalClassifier } from '../providers/laya-local.js';
+import type { PlannerMode } from '../setup.js';
 import { verifyCompletion, type CompletionResult } from '../runtime/completion.js';
 import { performance } from 'node:perf_hooks';
 
@@ -10,6 +13,7 @@ export type SkyTaskOptions = {
   goal: string;
   adapter: SkyAdapter;
   classifier?: ActionClassifier;
+  planner?: PlannerMode;
   maxSteps?: number;
   approved?: boolean;
   textValue?: string | Record<string, string>;
@@ -68,7 +72,7 @@ async function pauseBriefly(): Promise<void> {
 
 export async function runSkyTask(options: SkyTaskOptions): Promise<SkyRunResult> {
   const startedAt = performance.now();
-  const classifier = options.classifier ?? await createDefaultClassifier();
+  const classifier = options.classifier ?? await createDefaultClassifier(options.planner);
   const verifier = options.verifier ?? verifyCompletion;
   const maxSteps = Math.max(1, Math.floor(options.maxSteps ?? 12));
   const metrics: SkyRunMetrics = {
@@ -185,7 +189,15 @@ export async function runSkyTask(options: SkyTaskOptions): Promise<SkyRunResult>
   return result('max_steps', steps, metrics, startedAt, { reason: `MAX_STEPS_REACHED: ${maxSteps}` });
 }
 
-async function createDefaultClassifier(): Promise<ActionClassifier> {
+export async function resolveRuntimePlanner(requested?: PlannerMode): Promise<'jev' | 'laya'> {
+  const configured = requested ?? await loadPlannerMode() ?? 'auto';
+  if (configured === 'jev' || configured === 'laya') return configured;
+  return (await loadGatewayCredential()) ? 'jev' : 'laya';
+}
+
+async function createDefaultClassifier(requested?: PlannerMode): Promise<ActionClassifier> {
+  const planner = await resolveRuntimePlanner(requested);
+  if (planner === 'laya') return new LayaLocalClassifier();
   const { JevVercelClassifier } = await import('../providers/jev-vercel.js');
   return new JevVercelClassifier();
 }

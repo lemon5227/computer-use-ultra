@@ -1,11 +1,13 @@
 import type { SkyAdapter } from './sky-adapter.js';
 import type { ClassificationResult, PageSnapshot } from '../core/types.js';
 import type { ActionClassifier } from '../providers/classifier.js';
+import type { PlannerMode } from '../setup.js';
 import { type CompletionResult } from '../runtime/completion.js';
 export type SkyTaskOptions = {
     goal: string;
     adapter: SkyAdapter;
     classifier?: ActionClassifier;
+    planner?: PlannerMode;
     maxSteps?: number;
     approved?: boolean;
     textValue?: string | Record<string, string>;
@@ -28,5 +30,6 @@ export type SkyRunMetrics = {
     elapsedMs: number;
 };
 export declare function runSkyTask(options: SkyTaskOptions): Promise<SkyRunResult>;
+export declare function resolveRuntimePlanner(requested?: PlannerMode): Promise<'jev' | 'laya'>;
 export type { SkyAdapter } from './sky-adapter.js';
 //# sourceMappingURL=sky-runner.d.ts.map

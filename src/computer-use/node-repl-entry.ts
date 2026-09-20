@@ -35,6 +35,10 @@ export function publicSkyRunResult(result: SkyRunResult): PublicSkyRunResult {
 }
 
 export async function runJevComputerUse(sky: SkyApi, options: NodeReplSkyTaskOptions): Promise<PublicSkyRunResult> {
+  return runComputerUse(sky, options);
+}
+
+export async function runComputerUse(sky: SkyApi, options: NodeReplSkyTaskOptions): Promise<PublicSkyRunResult> {
   const result = await runSkyTask({
     ...options,
     adapter: createSkyAdapter(sky, options.app ?? 'Google Chrome'),

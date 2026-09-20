@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDoctorReport } from '../src/cli.js';
+import { formatDoctorReport, formatSetupReport, parseCliArgs } from '../src/cli.js';
 
 describe('computer-use-ultra doctor', () => {
   it('reports health without exposing the credential', () => {
@@ -26,5 +26,39 @@ describe('computer-use-ultra doctor', () => {
 
     expect(report).toContain('missing');
     expect(report).toContain('bundled-computer-use');
+  });
+});
+
+describe('computer-use-ultra setup', () => {
+  it('defaults to automatic Jev-or-Laya selection', () => {
+    expect(parseCliArgs(['setup'])).toMatchObject({
+      command: 'setup',
+      planner: 'auto',
+      noPrompt: false,
+      forceCredential: false,
+    });
+  });
+
+  it('parses explicit planner and non-interactive setup options', () => {
+    expect(parseCliArgs(['setup', '--planner', 'laya', '--no-prompt', '--force-credential']))
+      .toMatchObject({
+        command: 'setup',
+        planner: 'laya',
+        noPrompt: true,
+        forceCredential: true,
+      });
+  });
+
+  it('formats a secret-free setup report', () => {
+    const report = formatSetupReport({
+      planner: 'jev',
+      credential: 'configured',
+      skills: ['computer-use-ultra'],
+      laya: 'not-selected',
+      credentialValue: 'secret-value-must-not-print',
+    });
+
+    expect(report).toContain('jev');
+    expect(report).not.toContain('secret-value-must-not-print');
   });
 });

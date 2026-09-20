@@ -1,4 +1,5 @@
 import { homedir } from 'node:os';
+import { readPlannerConfig } from '../setup.js';
 const ALLOWED_VALUE = /^[A-Za-z0-9._~+/=-]+$/u;
 const ASSIGNMENT = /^\s*(?:export\s+)?(AI_GATEWAY_API_KEY|VERCEL_OIDC_TOKEN)\s*=\s*(.*?)\s*$/u;
 function cleanAssignmentValue(raw) {
@@ -51,5 +52,11 @@ export async function loadGatewayCredential(cwd = '.') {
             return parsed;
     }
     return undefined;
+}
+export async function loadPlannerMode() {
+    const runtimeValue = typeof process === 'undefined' ? undefined : process.env.COMPUTER_USE_ULTRA_PLANNER;
+    if (runtimeValue === 'auto' || runtimeValue === 'jev' || runtimeValue === 'laya')
+        return runtimeValue;
+    return readPlannerConfig();
 }
 //# sourceMappingURL=gateway-auth.js.map

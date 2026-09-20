@@ -15,4 +15,5 @@ export type PublicSkyRunResult = Pick<SkyRunResult, 'status' | 'steps' | 'reason
 };
 export declare function publicSkyRunResult(result: SkyRunResult): PublicSkyRunResult;
 export declare function runJevComputerUse(sky: SkyApi, options: NodeReplSkyTaskOptions): Promise<PublicSkyRunResult>;
+export declare function runComputerUse(sky: SkyApi, options: NodeReplSkyTaskOptions): Promise<PublicSkyRunResult>;
 //# sourceMappingURL=node-repl-entry.d.ts.map

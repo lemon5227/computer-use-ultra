@@ -1,5 +1,7 @@
 import { AccessibilitySnapshotCache } from './snapshot-cache.js';
 import { canExecute } from '../core/policy.js';
+import { loadGatewayCredential, loadPlannerMode } from '../providers/gateway-auth.js';
+import { LayaLocalClassifier } from '../providers/laya-local.js';
 import { verifyCompletion } from '../runtime/completion.js';
 import { performance } from 'node:perf_hooks';
 function errorMessage(error) {
@@ -27,7 +29,7 @@ async function pauseBriefly() {
 }
 export async function runSkyTask(options) {
     const startedAt = performance.now();
-    const classifier = options.classifier ?? await createDefaultClassifier();
+    const classifier = options.classifier ?? await createDefaultClassifier(options.planner);
     const verifier = options.verifier ?? verifyCompletion;
     const maxSteps = Math.max(1, Math.floor(options.maxSteps ?? 12));
     const metrics = {
@@ -145,7 +147,16 @@ export async function runSkyTask(options) {
     }
     return result('max_steps', steps, metrics, startedAt, { reason: `MAX_STEPS_REACHED: ${maxSteps}` });
 }
-async function createDefaultClassifier() {
+export async function resolveRuntimePlanner(requested) {
+    const configured = requested ?? await loadPlannerMode() ?? 'auto';
+    if (configured === 'jev' || configured === 'laya')
+        return configured;
+    return (await loadGatewayCredential()) ? 'jev' : 'laya';
+}
+async function createDefaultClassifier(requested) {
+    const planner = await resolveRuntimePlanner(requested);
+    if (planner === 'laya')
+        return new LayaLocalClassifier();
     const { JevVercelClassifier } = await import('../providers/jev-vercel.js');
     return new JevVercelClassifier();
 }
