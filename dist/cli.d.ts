@@ -26,8 +26,10 @@ export type CliArgs = {
     noPrompt: boolean;
     forceCredential: boolean;
 };
+export type CredentialSetupChoice = 'vercel' | 'key' | 'laya';
 export declare function formatDoctorReport(input: DoctorReportInput): string;
 export declare function formatSetupReport(input: SetupReportInput): string;
 export declare function promptForJevKey(ask: (message: string) => Promise<string>): Promise<string | undefined>;
+export declare function promptForCredentialSetupChoice(ask: (message: string) => Promise<string>): Promise<CredentialSetupChoice>;
 export declare function parseCliArgs(argv: string[]): CliArgs;
 //# sourceMappingURL=cli.d.ts.map

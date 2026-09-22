@@ -2,7 +2,7 @@
 
 Computer Use Ultra is an independent fast action-planning layer for Codex's bundled macOS Computer Use runtime.
 
-It does not launch or control a browser itself. Codex Computer Use remains the executor through `node_repl` and `@oai/sky`; this package turns the current Chrome Accessibility Tree into a bounded action space, asks a fast planner for the next action and `element_index`, then invokes the existing Computer Use action. If a Jev/Gateway key is configured, Jev is used. If no key is available, local Laya is used.
+It does not launch or control a browser itself. Codex Computer Use remains the executor through `node_repl` and `@oai/sky`; this package turns the current Chrome Accessibility Tree into a bounded action space, asks a fast planner for the next action and `element_index`, then invokes the existing Computer Use action. Jev requests currently go through Vercel AI Gateway. A Vercel AI Gateway key selects Jev; without one, local Laya is used.
 
 This is not an official OpenAI or Codex product.
 
@@ -19,15 +19,25 @@ This is not an official OpenAI or Codex product.
 npm install -g computer-use-ultra && computer-use-ultra setup
 ```
 
-`setup` installs the Codex Skill automatically. If no Jev key is already configured, it asks you to paste one and saves it locally. Press Enter without a key only if you want to use the local Laya fallback:
+`setup` installs the Codex Skill automatically. This release supports Jev through Vercel AI Gateway; it does not accept a direct TypeSafe AI Jev API key. If no Gateway credential is already configured, setup offers Vercel sign-in and automatic Jev configuration as the default. It checks your Vercel CLI session, opens Vercel's browser sign-in if needed, creates a dedicated AI Gateway key, and saves it locally. You can instead paste an existing Gateway key or choose local Laya.
 
-- Jev when `AI_GATEWAY_API_KEY`/`VERCEL_OIDC_TOKEN` already exists, you paste a key, or `--api-key` is supplied.
-- Local Laya only when no Jev key is supplied and you explicitly continue without one. Laya needs Python and its local model; setup reports the exact install command if it is missing.
+- Jev when `AI_GATEWAY_API_KEY`/`VERCEL_OIDC_TOKEN` already exists, you finish Vercel sign-in, paste a Vercel AI Gateway key, or `--api-key` is supplied.
+- Local Laya only when you explicitly choose it or continue without a Vercel credential. Laya needs Python and its local model; setup reports the exact install command if it is missing.
 
-To explicitly provide a Jev key:
+### Get a Vercel AI Gateway key
+
+1. Sign in to your [Vercel dashboard](https://vercel.com/dashboard).
+2. Open **AI Gateway → API Keys** and choose **Create key**.
+3. Copy the new key, run `computer-use-ultra setup`, and paste it when prompted.
+
+See Vercel's [AI Gateway authentication guide](https://vercel.com/docs/ai-gateway/authentication-and-byok) for the current dashboard steps and authentication options. A TypeSafe AI key created for direct Jev access is a different credential and is not supported by this integration.
+
+中文：首次运行 setup 时选择默认的 Vercel 登录选项，并在浏览器完成登录；工具会自动创建并保存 Gateway key。也可以先在 Vercel Dashboard 的 **AI Gateway → API Keys → Create key** 手动创建 key，再在 setup 里选择粘贴已有 key。需要的是 Vercel AI Gateway key，不是 TypeSafe AI 官网的直连 Jev key。
+
+To pass a Vercel AI Gateway key directly to setup:
 
 ```bash
-npm install -g computer-use-ultra && computer-use-ultra setup --api-key "YOUR_JEV_OR_GATEWAY_KEY"
+npm install -g computer-use-ultra && computer-use-ultra setup --api-key "YOUR_VERCEL_AI_GATEWAY_KEY"
 ```
 
 To explicitly force local Laya:
@@ -55,7 +65,7 @@ The report shows the selected planner, Skill installation, Jev credential presen
 
 ## 给 Codex：把这段直接发给它
 
-使用者不需要理解 Jev、Laya 或配置文件。把本 README 的链接和下面这段话一起发给 Codex；安装过程中只需要在终端提示时粘贴 Jev/Gateway key：
+使用者不需要理解 Jev、Laya 或配置文件。把本 README 的链接和下面这段话一起发给 Codex；默认通过 Vercel 浏览器登录自动创建并保存 Gateway key，不需要手动复制 key：
 
 ```text
 请阅读并安装 Computer Use Ultra：
@@ -64,9 +74,10 @@ https://github.com/lemon5227/computer-use-ultra/blob/main/README.md
 请执行：
 1. 安装 npm 包 computer-use-ultra。
 2. 运行 computer-use-ultra setup。
-3. 当终端提示时，让我输入 Jev/Gateway key，并自动保存它；不要让我手动编辑环境变量或配置文件。
-4. 运行 computer-use-ultra doctor，确认 planner 是 jev。
-5. 安装并使用 Computer Use Ultra Skill，操作我当前的 Chrome 标签页。
+3. setup 默认选择 Vercel 登录自动配置 Jev；如果浏览器要求登录，让我完成登录并继续，自动创建并保存 Vercel AI Gateway key。
+4. 如果自动登录失败，再让我选择粘贴现有的 Vercel AI Gateway key；不要接受 TypeSafe 官网的直连 Jev key，也不要让我手动编辑环境变量或配置文件。
+5. 运行 computer-use-ultra doctor，确认 planner 是 jev。
+6. 安装并使用 Computer Use Ultra Skill，操作我当前的 Chrome 标签页。
 
 要求：
 - 使用 Codex Computer Use 和 @oai/sky 执行浏览器动作。

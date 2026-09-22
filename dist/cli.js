@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { JevVercelClassifier } from './providers/jev-vercel.js';
 import { loadGatewayCredential, loadPlannerMode } from './providers/gateway-auth.js';
+import { createGatewayKeyWithVercelCli } from './vercel-cli.js';
 import { detectLaya, installLaya, installPackagedSkills, resolvePlanner, writeGatewayCredential, writePlannerConfig, } from './setup.js';
 export function formatDoctorReport(input) {
     return JSON.stringify({
@@ -34,8 +35,18 @@ export function formatSetupReport(input) {
     return lines.join('\n');
 }
 export async function promptForJevKey(ask) {
-    const value = (await ask('Enter your Jev/Gateway key (press Enter to use local Laya): ')).trim();
+    const value = (await ask('Enter your Vercel AI Gateway key for Jev (press Enter to use local Laya): ')).trim();
     return value || undefined;
+}
+export async function promptForCredentialSetupChoice(ask) {
+    const value = (await ask('Set up Jev with Vercel sign-in (recommended), paste an existing Gateway key, or use local Laya? [1/2/3, default 1]: ')).trim().toLocaleLowerCase();
+    if (!value || value === '1' || value === 'vercel')
+        return 'vercel';
+    if (value === '2' || value === 'key')
+        return 'key';
+    if (value === '3' || value === 'laya')
+        return 'laya';
+    throw new Error('Choose 1 for Vercel sign-in, 2 to paste a Gateway key, or 3 for local Laya.');
 }
 export function parseCliArgs(argv) {
     const [first, ...rest] = argv;
@@ -92,6 +103,15 @@ async function promptForJevKeyFromTerminal() {
         readline.close();
     }
 }
+async function promptForCredentialSetupChoiceFromTerminal() {
+    const readline = createInterface({ input: process.stdin, output: process.stdout });
+    try {
+        return await promptForCredentialSetupChoice((message) => readline.question(message));
+    }
+    finally {
+        readline.close();
+    }
+}
 async function doctor() {
     const health = await new JevVercelClassifier().health();
     const planner = await loadPlannerMode();
@@ -117,9 +137,32 @@ async function setup(args) {
         await writeGatewayCredential(args.apiKey, { force: args.forceCredential });
     let credential = await loadGatewayCredential();
     if (!credential && !args.apiKey && !args.noPrompt && args.planner !== 'laya' && process.stdin.isTTY && process.stdout.isTTY) {
-        const promptedKey = await promptForJevKeyFromTerminal();
-        if (promptedKey) {
-            await writeGatewayCredential(promptedKey, { force: args.forceCredential });
+        const choice = await promptForCredentialSetupChoiceFromTerminal();
+        if (choice === 'vercel') {
+            let promptedKey;
+            let createdByVercel = false;
+            try {
+                promptedKey = await createGatewayKeyWithVercelCli({
+                    onLoginRequired: () => console.log('Vercel CLI is not signed in. Starting Vercel browser sign-in...'),
+                });
+                createdByVercel = true;
+            }
+            catch (error) {
+                console.error(error instanceof Error ? error.message : String(error));
+                promptedKey = await promptForJevKeyFromTerminal();
+            }
+            if (promptedKey) {
+                await writeGatewayCredential(promptedKey, { force: args.forceCredential });
+                if (createdByVercel)
+                    console.log('Vercel AI Gateway key created and saved locally.');
+            }
+        }
+        else if (choice === 'key') {
+            const promptedKey = await promptForJevKeyFromTerminal();
+            if (promptedKey)
+                await writeGatewayCredential(promptedKey, { force: args.forceCredential });
+        }
+        if (choice !== 'laya') {
             credential = await loadGatewayCredential();
         }
     }

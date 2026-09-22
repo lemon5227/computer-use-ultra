@@ -5,7 +5,7 @@ description: Use when Codex needs to operate the current Chrome Computer Use sur
 
 # Computer Use Ultra
 
-Use Computer Use Ultra when a Codex task asks to operate Chrome: navigate, click, type, select, scroll, or complete a browser goal. Computer Use remains the executor; the planner automatically uses Jev when a Jev/Gateway key is configured and local Laya when it is not.
+Use Computer Use Ultra when a Codex task asks to operate Chrome: navigate, click, type, select, scroll, or complete a browser goal. Computer Use remains the executor; the planner automatically uses Jev when a Vercel AI Gateway credential is configured and local Laya when it is not.
 
 ## Bootstrap
 
