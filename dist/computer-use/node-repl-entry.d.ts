@@ -1,7 +1,8 @@
-import { type SkyApi } from './sky-adapter.js';
+import { type SkyApi, type SkyWindow } from './sky-adapter.js';
 import { type SkyRunMetrics, type SkyRunResult, type SkyTaskOptions } from './sky-runner.js';
 export type NodeReplSkyTaskOptions = Omit<SkyTaskOptions, 'adapter'> & {
     app?: string;
+    window?: SkyWindow;
 };
 export type PublicSkyRunResult = Pick<SkyRunResult, 'status' | 'steps' | 'reason'> & {
     metrics: SkyRunMetrics;

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add Windows Computer Use Window2 support while preserving the legacy macOS Sky API.
+- Require an explicit returned Window2 target when multiple Chrome windows are open.
+- Keep Windows accessibility observations screenshot-free and map scrolling to bounded Page Up/Page Down input.
+
 ## 0.1.0 - 2026-09-20
 
 - Initial Computer Use Ultra release.

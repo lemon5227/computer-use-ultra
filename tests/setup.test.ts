@@ -31,7 +31,9 @@ describe('setup filesystem helpers', () => {
     const configDir = join(homeDir, '.config', 'computer-use-ultra');
 
     await writeGatewayCredential('key-123', { homeDir, configDir, force: false });
-    expect((await stat(join(configDir, 'credentials'))).mode & 0o777).toBe(0o600);
+    if (process.platform !== 'win32') {
+      expect((await stat(join(configDir, 'credentials'))).mode & 0o777).toBe(0o600);
+    }
     await expect(writeGatewayCredential('key-456', { homeDir, configDir, force: false }))
       .rejects.toThrow(/force/i);
   });

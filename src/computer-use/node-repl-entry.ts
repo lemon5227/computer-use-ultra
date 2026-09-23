@@ -1,8 +1,9 @@
-import { createSkyAdapter, type SkyApi } from './sky-adapter.js';
+import { createSkyAdapter, type SkyApi, type SkyWindow } from './sky-adapter.js';
 import { runSkyTask, type SkyRunMetrics, type SkyRunResult, type SkyTaskOptions } from './sky-runner.js';
 
 export type NodeReplSkyTaskOptions = Omit<SkyTaskOptions, 'adapter'> & {
   app?: string;
+  window?: SkyWindow;
 };
 
 export type PublicSkyRunResult = Pick<SkyRunResult, 'status' | 'steps' | 'reason'> & {
@@ -39,9 +40,10 @@ export async function runJevComputerUse(sky: SkyApi, options: NodeReplSkyTaskOpt
 }
 
 export async function runComputerUse(sky: SkyApi, options: NodeReplSkyTaskOptions): Promise<PublicSkyRunResult> {
+  const { app = 'Google Chrome', window, ...taskOptions } = options;
   const result = await runSkyTask({
-    ...options,
-    adapter: createSkyAdapter(sky, options.app ?? 'Google Chrome'),
+    ...taskOptions,
+    adapter: createSkyAdapter(sky, app, window ? { window } : {}),
   });
   return publicSkyRunResult(result);
 }
