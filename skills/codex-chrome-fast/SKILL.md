@@ -9,7 +9,7 @@ Use the Computer Use fast path for the current Chrome tab when a task is easier 
 
 ## Bootstrap
 
-Use `node_repl` and the bundled `@oai/sky` package. The project entrypoint is compiled to `dist/computer-use/node-repl-entry.js`:
+Use `node_repl` and the bundled `@oai/sky` package. On Windows, initialize Sky through the bundled Computer Use plugin's `scripts/computer-use-client.mjs` absolute path so app approvals and user interruption handling remain active; do not import `@oai/sky` directly there. On macOS, use the direct import below. The project entrypoint is compiled to `dist/computer-use/node-repl-entry.js`:
 
 ```js
 globalThis.sky = (await import("@oai/sky")).sky;
@@ -21,6 +21,8 @@ const result = await runComputerUse(globalThis.sky, {
 });
 nodeRepl.write(JSON.stringify(result));
 ```
+
+The Windows Window2 API requires a concrete window returned by `list_apps`, `list_windows`, or `get_window`. When multiple Chrome windows are open, select the user-intended window and pass it as `window` to `runComputerUse`; never construct or guess a window object. With exactly one matching Chrome window, the adapter can discover it automatically. Window2 observations request accessibility text with screenshots disabled, and scrolling uses bounded Page Up/Page Down input.
 
 The runner reads the current Chrome state before each planner decision and after each action. The planner receives one bounded action-choice request containing operation-target pairs, scrolling/waiting, `DONE`, and `BLOCKED`; the runner passes the last ten action outcomes to the next decision. The hot path makes one decision per cycle, uses no screenshot in the hot path, and caches repeated AX parsing. It does not launch a browser and does not use Playwright.
 

@@ -14,7 +14,7 @@ describe('codex-chrome-fast skill contract', () => {
       expect(skillContent).not.toContain('launch Browser Harness');
       expect(skillContent).not.toContain('start a second browser');
     }
-    expect(content).toMatch(/^---\nname: codex-chrome-fast\ndescription: Use when/m);
+    expect(content.replace(/\r\n/g, '\n')).toMatch(/^---\nname: codex-chrome-fast\ndescription: Use when/m);
     expect(content).toContain('node_repl');
     expect(content).toContain('@oai/sky');
     expect(content).toContain('Jev');
@@ -33,7 +33,7 @@ describe('codex-chrome-fast skill contract', () => {
 
     expect(packageJson.name).toBe('computer-use-ultra');
     expect(packageJson.bin).toHaveProperty('computer-use-ultra');
-    expect(publicSkill).toMatch(/^---\nname: computer-use-ultra\ndescription: Use when/m);
+    expect(publicSkill.replace(/\r\n/g, '\n')).toMatch(/^---\nname: computer-use-ultra\ndescription: Use when/m);
     expect(publicSkill).toContain('computer-use-ultra');
     expect(readme).toContain('npm install -g computer-use-ultra');
     expect(readme).toContain('import("computer-use-ultra")');

@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { publicSkyRunResult } from '../../src/computer-use/node-repl-entry.js';
+import { describe, expect, it, vi } from 'vitest';
+import { publicSkyRunResult, runComputerUse } from '../../src/computer-use/node-repl-entry.js';
+import type { Window2SkyApi } from '../../src/computer-use/sky-adapter.js';
+import type { ActionClassifier } from '../../src/providers/classifier.js';
 
 describe('publicSkyRunResult', () => {
   it('returns safe metadata without exposing the accessibility tree', () => {
@@ -51,5 +53,44 @@ describe('publicSkyRunResult', () => {
       },
     });
     expect(JSON.stringify(result)).not.toContain('Secret button');
+  });
+
+  it('passes an explicit Windows Window2 target through the public entrypoint', async () => {
+    const window = { app: 'chrome.exe', id: 77, title: 'Current tab' };
+    const sky: Window2SkyApi = {
+      list_apps: vi.fn(async () => []),
+      get_window: vi.fn(async () => window),
+      get_window_state: vi.fn(async () => ({
+        window,
+        accessibility: { tree: 'Window: "Current tab", App: chrome.exe\n1 button Home' },
+      })),
+      click: vi.fn(async () => {}),
+      set_value: vi.fn(async () => {}),
+      type_text: vi.fn(async () => {}),
+      press_key: vi.fn(async () => {}),
+    };
+    const classifier: ActionClassifier = {
+      health: async () => ({ ok: true, provider: 'test' }),
+      classify: async () => ({
+        operation: 'DONE',
+        targetId: null,
+        probabilities: { DONE: 1 },
+        shouldStop: true,
+        shouldStopProbability: 1,
+      }),
+    };
+
+    const result = await runComputerUse(sky, {
+      app: 'Google Chrome',
+      window,
+      goal: 'Observe the current tab',
+      classifier,
+      verifier: async () => ({ complete: true, reason: 'verified' }),
+    });
+
+    expect(result.status).toBe('completed');
+    expect(result.metrics.observeCount).toBe(1);
+    expect(sky.list_apps).not.toHaveBeenCalled();
+    expect(sky.get_window).toHaveBeenCalledWith(window);
   });
 });

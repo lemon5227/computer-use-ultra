@@ -9,7 +9,9 @@ Use Computer Use Ultra when a Codex task asks to operate Chrome: navigate, click
 
 ## Bootstrap
 
-In `node_repl`, initialize the bundled Computer Use package and import the installed runtime:
+Run `computer-use-ultra doctor` first. Then initialize the platform's bundled Computer Use runtime in `node_repl`.
+
+On macOS, import the bundled `@oai/sky` package directly:
 
 ```js
 globalThis.sky = (await import("@oai/sky")).sky;
@@ -20,6 +22,32 @@ const result = await runComputerUse(globalThis.sky, {
 });
 nodeRepl.write(JSON.stringify(result));
 ```
+
+On Windows, use the bundled Computer Use plugin's `scripts/computer-use-client.mjs` entrypoint. Resolve its installed absolute path and initialize it once; do not import `@oai/sky` directly because the client preserves app approvals and user interruption handling:
+
+```js
+if (!globalThis.sky) {
+  const { setupComputerUseRuntime } = await import(
+    "<absolute path to bundled computer-use/scripts/computer-use-client.mjs>"
+  );
+  await setupComputerUseRuntime({ globals: globalThis });
+}
+globalThis.apps = await sky.list_apps();
+globalThis.chromeWindows = apps
+  .filter((candidate) => /chrome/i.test(`${candidate.id} ${candidate.displayName ?? ""}`))
+  .flatMap((candidate) => candidate.windows);
+if (chromeWindows.length !== 1) throw new Error("Select exactly one current Chrome window");
+globalThis.targetWindow = await sky.get_window(chromeWindows[0]);
+const { runComputerUse } = await import("computer-use-ultra");
+const result = await runComputerUse(globalThis.sky, {
+  app: "Google Chrome",
+  window: targetWindow,
+  goal: "...",
+});
+nodeRepl.write(JSON.stringify(result));
+```
+
+Never construct a Windows window object. Select one returned by `list_apps`, `list_windows`, or `get_window`. If multiple Chrome windows are open, choose the user-intended window and pass it as `window`; do not guess. When one matching Chrome window is open, the runtime can discover it automatically.
 
 The runner uses the current Chrome Computer Use surface. It makes one bounded decision per cycle, uses no screenshot in the hot path, and does not launch a second browser or use Playwright. With no Jev key, Laya runs as a persistent local Python worker and keeps the model resident between decisions.
 
@@ -34,6 +62,6 @@ The runner uses the current Chrome Computer Use surface. It makes one bounded de
 
 ## Diagnosis
 
-Run `computer-use-ultra doctor` first. It reports planner, Jev credential, Skill, and Laya availability without printing the credential. Set `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN` to prefer Jev; otherwise install Laya with `python3 -m pip install laya` and the runner will use it automatically.
+`computer-use-ultra doctor` reports planner, Jev credential, Skill, and Laya availability without printing the credential. Set `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN` to prefer Jev; otherwise install Laya with `python3 -m pip install laya` and the runner will use it automatically. On Windows, `sky.get_app_state is not a function` means an older Computer Use Ultra release was used with the Window2 runtime; update the package and use the Windows bootstrap above.
 
 Computer Use Ultra is an independent project and is not an official OpenAI or Codex product.

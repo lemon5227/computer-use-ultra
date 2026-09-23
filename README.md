@@ -1,6 +1,6 @@
 # Computer Use Ultra
 
-Computer Use Ultra is an independent fast action-planning layer for Codex's bundled macOS Computer Use runtime.
+Computer Use Ultra is an independent fast action-planning layer for Codex's bundled Computer Use runtime on macOS and Windows.
 
 It does not launch or control a browser itself. Codex Computer Use remains the executor through `node_repl` and `@oai/sky`; this package turns the current Chrome Accessibility Tree into a bounded action space, asks a fast planner for the next action and `element_index`, then invokes the existing Computer Use action. Jev requests currently go through Vercel AI Gateway. A Vercel AI Gateway key selects Jev; without one, local Laya is used.
 
@@ -47,7 +47,7 @@ computer-use-ultra setup --planner laya
 python3 -m pip install laya
 ```
 
-The package requires a Codex environment with the bundled Computer Use `node_repl` and `@oai/sky` package. Chrome is the first supported surface.
+The package requires a Codex environment with the bundled Computer Use `node_repl` and `@oai/sky` package. On Windows, initialize Sky through the bundled Computer Use client's Window2 bootstrap. Chrome is the first supported surface.
 
 ## Requirements
 
@@ -87,7 +87,9 @@ https://github.com/lemon5227/computer-use-ultra/blob/main/README.md
 
 ## Computer Use entrypoint
 
-Build the package, then run the following in Codex `node_repl`:
+Build the package, then initialize the official Computer Use runtime in Codex `node_repl`.
+
+On macOS, the bundled Sky API can be imported directly:
 
 ```js
 globalThis.sky = (await import("@oai/sky")).sky;
@@ -98,6 +100,34 @@ const result = await runComputerUse(globalThis.sky, {
 });
 nodeRepl.write(JSON.stringify(result));
 ```
+
+On Windows, follow the bundled Computer Use Skill and import its `scripts/computer-use-client.mjs` by absolute path. The client loads `@oai/sky` with the required approvals and interruption handling. Select a window returned by the Window2 API instead of constructing one:
+
+```js
+if (!globalThis.sky) {
+  const { setupComputerUseRuntime } = await import(
+    "<absolute path to the bundled computer-use/scripts/computer-use-client.mjs>"
+  );
+  await setupComputerUseRuntime({ globals: globalThis });
+}
+globalThis.apps = await sky.list_apps();
+globalThis.chromeWindows = apps
+  .filter((candidate) => /chrome/i.test(`${candidate.id} ${candidate.displayName ?? ""}`))
+  .flatMap((candidate) => candidate.windows);
+if (chromeWindows.length !== 1) {
+  throw new Error("Select exactly one current Chrome window");
+}
+globalThis.targetWindow = await sky.get_window(chromeWindows[0]);
+const { runComputerUse } = await import("computer-use-ultra");
+const result = await runComputerUse(globalThis.sky, {
+  app: "Google Chrome",
+  window: targetWindow,
+  goal: "Open the pricing page",
+});
+nodeRepl.write(JSON.stringify(result));
+```
+
+When exactly one matching Chrome window is open, the Windows adapter can discover it automatically. Passing `window` is required when multiple matching windows are open so the runner never guesses which browser window to control. Windows observations use `get_window_state({ include_text: true, include_screenshot: false })`; scrolling uses bounded Page Up/Page Down input and still does not capture screenshots in the hot path.
 
 For text entry, provide an explicit approved value:
 

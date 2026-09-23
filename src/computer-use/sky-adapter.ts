@@ -1,6 +1,12 @@
 import type { SkyAppState } from './accessibility.js';
 
-export type SkyApi = {
+export type SkyWindow = {
+  app: string;
+  id: number;
+  title?: string;
+};
+
+export type LegacySkyApi = {
   get_app_state(args: { app: string; disableDiff?: boolean }): Promise<{ app: string; text: string }>;
   click(args: { app: string; element_index: number }): Promise<void>;
   set_value(args: { app: string; element_index: number; value: string }): Promise<void>;
@@ -8,6 +14,29 @@ export type SkyApi = {
   press_key(args: { app: string; key: string }): Promise<void>;
   scroll(args: { app: string; element_index?: number; direction: 'up' | 'down'; pages?: number }): Promise<void>;
 };
+
+export type Window2SkyApi = {
+  list_apps(): Promise<Array<{
+    id: string;
+    displayName?: string;
+    windows: SkyWindow[];
+  }>>;
+  get_window?(window: SkyWindow): Promise<SkyWindow>;
+  get_window_state(args: {
+    window: SkyWindow;
+    include_screenshot?: boolean;
+    include_text?: boolean;
+  }): Promise<{
+    window: SkyWindow;
+    accessibility: { tree: string } | null;
+  }>;
+  click(args: { window: SkyWindow; element_index: number }): Promise<void>;
+  set_value(args: { window: SkyWindow; element_index: number; value: string }): Promise<void>;
+  type_text(args: { window: SkyWindow; text: string }): Promise<void>;
+  press_key(args: { window: SkyWindow; key: string }): Promise<void>;
+};
+
+export type SkyApi = LegacySkyApi | Window2SkyApi;
 
 export type SkyAdapter = {
   observe(): Promise<SkyAppState>;
@@ -18,7 +47,30 @@ export type SkyAdapter = {
   scroll(direction: 'up' | 'down', pages?: number): Promise<void>;
 };
 
-export function createSkyAdapter(sky: SkyApi, app = 'Google Chrome'): SkyAdapter {
+export type SkyAdapterOptions = {
+  window?: SkyWindow;
+};
+
+function isLegacySkyApi(sky: SkyApi): sky is LegacySkyApi {
+  return typeof (sky as Partial<LegacySkyApi>).get_app_state === 'function';
+}
+
+function normalizeIdentifier(value: string): string {
+  return value.toLocaleLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function matchesApp(candidate: { id: string; displayName?: string }, requestedApp: string): boolean {
+  const requested = normalizeIdentifier(requestedApp);
+  const candidateText = normalizeIdentifier(`${candidate.id} ${candidate.displayName ?? ''}`);
+  if (candidateText.includes(requested)) return true;
+  return requested === 'googlechrome' && candidateText.includes('chrome');
+}
+
+function normalizedPageCount(pages: number): number {
+  return Number.isFinite(pages) ? Math.max(1, Math.trunc(pages)) : 1;
+}
+
+function createLegacySkyAdapter(sky: LegacySkyApi, app: string): SkyAdapter {
   return {
     observe: async () => {
       const state = await sky.get_app_state({ app, disableDiff: true });
@@ -30,4 +82,80 @@ export function createSkyAdapter(sky: SkyApi, app = 'Google Chrome'): SkyAdapter
     pressKey: (key) => sky.press_key({ app, key }),
     scroll: (direction, pages = 1) => sky.scroll({ app, direction, pages }),
   };
+}
+
+function createWindow2SkyAdapter(
+  sky: Window2SkyApi,
+  app: string,
+  initialWindow?: SkyWindow,
+): SkyAdapter {
+  let currentWindow = initialWindow;
+  let needsHydration = Boolean(initialWindow && sky.get_window);
+
+  const resolveWindow = async (): Promise<SkyWindow> => {
+    if (currentWindow) {
+      if (needsHydration && sky.get_window) {
+        currentWindow = await sky.get_window(currentWindow);
+        needsHydration = false;
+      }
+      return currentWindow;
+    }
+
+    const apps = await sky.list_apps();
+    const windows = apps
+      .filter((candidate) => matchesApp(candidate, app))
+      .flatMap((candidate) => candidate.windows);
+    if (!windows.length) {
+      throw new Error(`No open ${app} window was returned by Windows Computer Use`);
+    }
+    if (windows.length > 1) {
+      throw new Error(`Multiple open ${app} windows were returned; pass the intended window to runComputerUse`);
+    }
+
+    const matchedWindow = windows[0];
+    if (!matchedWindow) throw new Error(`No open ${app} window was returned by Windows Computer Use`);
+    currentWindow = sky.get_window ? await sky.get_window(matchedWindow) : matchedWindow;
+    needsHydration = false;
+    return currentWindow;
+  };
+
+  return {
+    observe: async () => {
+      const state = await sky.get_window_state({
+        window: await resolveWindow(),
+        include_screenshot: false,
+        include_text: true,
+      });
+      currentWindow = state.window;
+      needsHydration = false;
+      if (!state.accessibility?.tree) {
+        throw new Error('Windows Computer Use returned no accessibility tree');
+      }
+      return { app, text: state.accessibility.tree };
+    },
+    click: async (elementIndex) => sky.click({ window: await resolveWindow(), element_index: elementIndex }),
+    setValue: async (elementIndex, value) => sky.set_value({
+      window: await resolveWindow(),
+      element_index: elementIndex,
+      value,
+    }),
+    typeText: async (value) => sky.type_text({ window: await resolveWindow(), text: value }),
+    pressKey: async (key) => sky.press_key({ window: await resolveWindow(), key }),
+    scroll: async (direction, pages = 1) => {
+      const window = await resolveWindow();
+      const key = direction === 'up' ? 'Page_Up' : 'Page_Down';
+      for (let page = 0; page < normalizedPageCount(pages); page += 1) {
+        await sky.press_key({ window, key });
+      }
+    },
+  };
+}
+
+export function createSkyAdapter(
+  sky: SkyApi,
+  app = 'Google Chrome',
+  options: SkyAdapterOptions = {},
+): SkyAdapter {
+  if (isLegacySkyApi(sky)) return createLegacySkyAdapter(sky, app);
+  return createWindow2SkyAdapter(sky, app, options.window);
 }

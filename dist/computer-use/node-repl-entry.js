@@ -21,9 +21,10 @@ export async function runJevComputerUse(sky, options) {
     return runComputerUse(sky, options);
 }
 export async function runComputerUse(sky, options) {
+    const { app = 'Google Chrome', window, ...taskOptions } = options;
     const result = await runSkyTask({
-        ...options,
-        adapter: createSkyAdapter(sky, options.app ?? 'Google Chrome'),
+        ...taskOptions,
+        adapter: createSkyAdapter(sky, app, window ? { window } : {}),
     });
     return publicSkyRunResult(result);
 }
