@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, rmdir, unlink, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,17 +37,58 @@ export async function writePlannerConfig(mode, options = {}) {
     await writeFile(target, `COMPUTER_USE_ULTRA_PLANNER=${mode}\n`, { mode: 0o600 });
     await chmod(target, 0o600);
 }
-export async function installPackagedSkills(options = {}) {
+const STANDALONE_SKILL_NAMES = ['computer-use-ultra', 'codex-chrome-fast'];
+export async function findStandaloneSkills(options = {}) {
     const paths = setupPaths(options);
-    const skillNames = ['computer-use-ultra', 'codex-chrome-fast'];
-    for (const name of skillNames) {
-        const source = join(paths.packageRoot, 'skills', name, 'SKILL.md');
+    const present = [];
+    for (const name of STANDALONE_SKILL_NAMES) {
         const target = join(paths.homeDir, '.codex', 'skills', name, 'SKILL.md');
-        const content = await readFile(source, 'utf8');
-        await mkdir(dirname(target), { recursive: true, mode: 0o700 });
-        await writeFile(target, content, { mode: 0o600 });
+        try {
+            await readFile(target);
+            present.push(name);
+        }
+        catch (error) {
+            if (error.code !== 'ENOENT')
+                throw error;
+        }
     }
-    return { installed: skillNames };
+    return present;
+}
+export async function migrateStandaloneSkills(options = {}) {
+    const paths = setupPaths(options);
+    const result = { removed: [], preserved: [] };
+    for (const name of STANDALONE_SKILL_NAMES) {
+        const target = join(paths.homeDir, '.codex', 'skills', name, 'SKILL.md');
+        const sourceFiles = [join(paths.packageRoot, 'skills', name, 'SKILL.md')];
+        if (name === 'computer-use-ultra') {
+            sourceFiles.push(join(paths.packageRoot, 'skills', 'migrations', 'v0.2.0', name, 'SKILL.md'));
+        }
+        const packagedContents = await Promise.all(sourceFiles.map((source) => readFile(source, 'utf8')));
+        let installed;
+        try {
+            installed = await readFile(target, 'utf8');
+        }
+        catch (error) {
+            if (error.code === 'ENOENT')
+                continue;
+            throw error;
+        }
+        if (!packagedContents.includes(installed)) {
+            result.preserved.push(name);
+            continue;
+        }
+        await unlink(target);
+        result.removed.push(name);
+        try {
+            await rmdir(dirname(target));
+        }
+        catch (error) {
+            const code = error.code;
+            if (code !== 'ENOENT' && code !== 'ENOTEMPTY' && code !== 'EEXIST')
+                throw error;
+        }
+    }
+    return result;
 }
 export async function writeGatewayCredential(value, options = {}) {
     if (!value || !VALID_KEY.test(value))

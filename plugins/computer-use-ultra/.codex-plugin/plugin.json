@@ -1,0 +1,23 @@
+{
+  "name": "computer-use-ultra",
+  "version": "0.2.0",
+  "description": "A faster Jev-or-Laya action planner for Codex Computer Use in Chrome.",
+  "author": {
+    "name": "Computer Use Ultra contributors",
+    "url": "https://github.com/lemon5227/computer-use-ultra"
+  },
+  "skills": "./skills/",
+  "homepage": "https://github.com/lemon5227/computer-use-ultra",
+  "repository": "https://github.com/lemon5227/computer-use-ultra",
+  "license": "MIT",
+  "keywords": ["codex", "computer-use", "chrome", "jev", "laya"],
+  "interface": {
+    "displayName": "Computer Use Ultra",
+    "shortDescription": "Faster Chrome actions with Codex Computer Use.",
+    "longDescription": "Adds a fast Jev-or-Laya action planner to Codex's built-in Chrome Computer Use. Toggle it on or off in Codex Plugins settings; setup configures credentials and planner selection separately.",
+    "developerName": "Computer Use Ultra contributors",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Use Computer Use Ultra to operate the current Chrome tab with Codex Computer Use."
+  }
+}

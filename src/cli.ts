@@ -1,8 +1,5 @@
 #!/usr/bin/env node
-import { access } from 'node:fs/promises';
-import { homedir } from 'node:os';
 import { createInterface } from 'node:readline/promises';
-import { join } from 'node:path';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { JevVercelClassifier } from './providers/jev-vercel.js';
@@ -10,8 +7,9 @@ import { loadGatewayCredential, loadPlannerMode } from './providers/gateway-auth
 import { createGatewayKeyWithVercelCli } from './vercel-cli.js';
 import {
   detectLaya,
+  findStandaloneSkills,
   installLaya,
-  installPackagedSkills,
+  migrateStandaloneSkills,
   resolvePlanner,
   type PlannerMode,
   writeGatewayCredential,
@@ -26,14 +24,14 @@ export type DoctorReportInput = {
   credentialValue?: string;
   planner?: PlannerMode;
   plannerConfig?: PlannerMode;
-  skillInstalled?: boolean;
+  legacySkills?: string[];
   layaAvailable?: boolean;
 };
 
 export type SetupReportInput = {
   planner: PlannerMode;
   credential: 'configured' | 'missing' | 'not-selected';
-  skills: string[];
+  legacySkills: { removed: string[]; preserved: string[] };
   laya: 'available' | 'missing' | 'not-selected';
   credentialValue?: string;
   warning?: string;
@@ -57,7 +55,7 @@ export function formatDoctorReport(input: DoctorReportInput): string {
     executor: { mode: 'bundled-computer-use', configured: true },
     ...(input.planner ? { planner: input.planner } : {}),
     ...(input.plannerConfig ? { plannerConfig: input.plannerConfig } : {}),
-    ...(input.skillInstalled !== undefined ? { skill: { installed: input.skillInstalled } } : {}),
+    ...(input.legacySkills !== undefined ? { legacySkills: input.legacySkills } : {}),
     ...(input.layaAvailable !== undefined ? { laya: { available: input.layaAvailable } } : {}),
   }, null, 2);
 }
@@ -68,10 +66,14 @@ export function formatSetupReport(input: SetupReportInput): string {
     `planner: ${input.planner}`,
     `jev credential: ${input.credential}`,
     `laya: ${input.laya}`,
-    `skills: ${input.skills.join(', ') || 'none'}`,
-    'next: restart Codex, then ask it to operate the current Chrome tab',
+    `legacy standalone Skills removed: ${input.legacySkills.removed.join(', ') || 'none'}`,
+    `customized standalone Skills preserved: ${input.legacySkills.preserved.join(', ') || 'none'}`,
+    'next: enable Computer Use Ultra in Codex Plugins; disabling it leaves built-in Computer Use available',
   ];
   if (input.warning) lines.push(`warning: ${input.warning}`);
+  if (input.legacySkills.preserved.length > 0) {
+    lines.push('warning: customized standalone Skills are outside the plugin toggle; review or move them to fully disable Ultra');
+  }
   return lines.join('\n');
 }
 
@@ -158,7 +160,7 @@ async function doctor(): Promise<void> {
   const health = await new JevVercelClassifier().health();
   const planner = await loadPlannerMode();
   const laya = await detectLaya();
-  const skillInstalled = await hasSkillInstalled();
+  const legacySkills = await findStandaloneSkills();
   console.log(formatDoctorReport({
     packageName: 'computer-use-ultra',
     version: '0.2.0',
@@ -166,7 +168,7 @@ async function doctor(): Promise<void> {
     credentialConfigured: health.ok,
     planner: resolvePlanner(planner ?? 'auto', health.ok, laya.available),
     plannerConfig: planner ?? 'auto',
-    skillInstalled,
+    legacySkills,
     layaAvailable: laya.available,
   }));
 }
@@ -175,7 +177,7 @@ async function setup(args: CliArgs): Promise<void> {
   if (Number(process.versions.node.split('.')[0]) < 22) {
     throw new Error('Computer Use Ultra requires Node.js 22 or newer');
   }
-  const skills = await installPackagedSkills();
+  const legacySkills = await migrateStandaloneSkills();
   if (args.apiKey) await writeGatewayCredential(args.apiKey, { force: args.forceCredential });
 
   let credential = await loadGatewayCredential();
@@ -228,18 +230,9 @@ async function setup(args: CliArgs): Promise<void> {
   console.log(formatSetupReport({
     planner,
     credential: credential ? 'configured' : 'missing',
-    skills: skills.installed,
+    legacySkills,
     laya: planner === 'laya' ? 'available' : 'not-selected',
   }));
-}
-
-async function hasSkillInstalled(): Promise<boolean> {
-  try {
-    await access(join(homedir(), '.codex', 'skills', 'computer-use-ultra', 'SKILL.md'));
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 async function main(): Promise<void> {
