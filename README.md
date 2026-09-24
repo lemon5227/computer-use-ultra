@@ -13,13 +13,25 @@ This is not an official OpenAI or Codex product.
 - This package: normalizes state, validates choices, remembers recent actions, enforces explicit text and risk approval, and verifies progress.
 - No Playwright, standalone browser, search provider, TinyFish, Monid, or MCP server is included. Chrome is still operated by Codex Computer Use.
 
-## Install in one command
+## Install and toggle in Codex
+
+Install the runtime and configure the planner:
 
 ```bash
 npm install -g computer-use-ultra && computer-use-ultra setup
 ```
 
-`setup` installs the Codex Skill automatically. This release supports Jev through Vercel AI Gateway; it does not accept a direct TypeSafe AI Jev API key. If no Gateway credential is already configured, setup offers Vercel sign-in and automatic Jev configuration as the default. It checks your Vercel CLI session, opens Vercel's browser sign-in if needed, creates a dedicated AI Gateway key, and saves it locally. You can instead paste an existing Gateway key or choose local Laya.
+The npm package installs the runtime and CLI. `setup` configures only the planner and credentials; it does not install a global Skill or change the plugin's enabled state. It safely removes only exact packaged copies of old global Skills; customized copies are preserved and reported by `setup`/`doctor`.
+
+The repository includes a local Codex plugin at `plugins/computer-use-ultra` and its marketplace entry at `.agents/plugins/marketplace.json`. When working in this repository, open/trust it in Codex and find **Computer Use Ultra** in the Plugins browser. From another repository, add the GitHub marketplace once:
+
+```bash
+codex plugin marketplace add lemon5227/computer-use-ultra --ref main
+```
+
+Then install/enable it in Codex Plugins. Toggle it on or off from Codex Plugins settings at any time; when it is off, use Codex's built-in Computer Use normally. Adding the marketplace registers its source in the user's Codex configuration but does not enable the plugin. The npm runtime is still required for the Skill's `computer-use-ultra` import. If `setup` reports a customized standalone Skill as preserved, that copy can still invoke Ultra independently of the plugin toggle; inspect and move/disable it yourself if you want the toggle to be authoritative.
+
+This release supports Jev through Vercel AI Gateway; it does not accept a direct TypeSafe AI Jev API key. If no Gateway credential is already configured, setup offers Vercel sign-in and automatic Jev configuration as the default. It checks your Vercel CLI session, opens Vercel's browser sign-in if needed, creates a dedicated AI Gateway key, and saves it locally. You can instead paste an existing Gateway key or choose local Laya.
 
 - Jev when `AI_GATEWAY_API_KEY`/`VERCEL_OIDC_TOKEN` already exists, you finish Vercel sign-in, paste a Vercel AI Gateway key, or `--api-key` is supplied.
 - Local Laya only when you explicitly choose it or continue without a Vercel credential. Laya needs Python and its local model; setup reports the exact install command if it is missing.
@@ -61,23 +73,23 @@ The package requires a Codex environment with the bundled Computer Use `node_rep
 computer-use-ultra doctor
 ```
 
-The report shows the selected planner, Skill installation, Jev credential presence, and Laya availability without printing the key. The key is read from the environment when available. In Codex `node_repl`, where the shell environment is isolated, the runtime also accepts an explicit `AI_GATEWAY_API_KEY=...` or `VERCEL_OIDC_TOKEN=...` assignment in `.env`, `~/.config/computer-use-ultra/credentials`, the legacy `~/.config/codex-chrome-fast/credentials`, `~/.zprofile`, or `~/.zshrc`. It parses the assignment without executing the shell file. Do not commit `.env`, print the key, or put it in a prompt.
+The report shows the selected planner, remaining standalone legacy Skill copies, Jev credential presence, and Laya availability without printing the key. It cannot inspect whether Codex has the plugin enabled; use Codex Plugins settings for that. A customized standalone Skill may continue to invoke Ultra while the plugin is off. The key is read from the environment when available. In Codex `node_repl`, where the shell environment is isolated, the runtime also accepts an explicit `AI_GATEWAY_API_KEY=...` or `VERCEL_OIDC_TOKEN=...` assignment in `.env`, `~/.config/computer-use-ultra/credentials`, the legacy `~/.config/codex-chrome-fast/credentials`, `~/.zprofile`, or `~/.zshrc`. It parses the assignment without executing the shell file. Do not commit `.env`, print the key, or put it in a prompt.
 
 ## 给 Codex：把这段直接发给它
 
-使用者不需要理解 Jev、Laya 或配置文件。把本 README 的链接和下面这段话一起发给 Codex；默认通过 Vercel 浏览器登录自动创建并保存 Gateway key，不需要手动复制 key：
+使用者不需要理解 Jev、Laya 或配置文件。把本 README 的链接和下面这段话一起发给 Codex；默认通过 Vercel 浏览器登录自动创建并保存 Gateway key，不需要手动复制 key。插件开关仍由用户在 Codex Plugins 设置中控制：
 
 ```text
 请阅读并安装 Computer Use Ultra：
 https://github.com/lemon5227/computer-use-ultra/blob/main/README.md
 
 请执行：
-1. 安装 npm 包 computer-use-ultra。
-2. 运行 computer-use-ultra setup。
-3. setup 默认选择 Vercel 登录自动配置 Jev；如果浏览器要求登录，让我完成登录并继续，自动创建并保存 Vercel AI Gateway key。
-4. 如果自动登录失败，再让我选择粘贴现有的 Vercel AI Gateway key；不要接受 TypeSafe 官网的直连 Jev key，也不要让我手动编辑环境变量或配置文件。
-5. 运行 computer-use-ultra doctor，确认 planner 是 jev。
-6. 安装并使用 Computer Use Ultra Skill，操作我当前的 Chrome 标签页。
+1. 在当前仓库安装 npm 包 computer-use-ultra，并运行 computer-use-ultra setup。
+2. setup 默认选择 Vercel 登录自动配置 Jev；如果浏览器要求登录，让我完成登录并继续，自动创建并保存 Vercel AI Gateway key。
+3. 如果自动登录失败，再让我选择粘贴现有的 Vercel AI Gateway key；不要接受 TypeSafe 官网的直连 Jev key，也不要让我手动编辑环境变量或配置文件。
+4. 运行 computer-use-ultra doctor，确认 planner 是 jev。
+5. 如果 Computer Use Ultra marketplace 尚未添加，运行 `codex plugin marketplace add lemon5227/computer-use-ultra --ref main`；随后告诉我去 Codex Plugins 设置中自行安装/启用。不要安装全局 Skill，也不要替我改变插件开关。
+6. 插件启用后才使用它操作当前 Chrome 标签页；插件关闭时使用 Codex 内置 Computer Use。
 
 要求：
 - 使用 Codex Computer Use 和 @oai/sky 执行浏览器动作。
@@ -113,9 +125,9 @@ The runner observes the current Chrome Accessibility Tree before each planner de
 
 The public result includes aggregate metrics: `observeCount`, `classifierCalls`, `cacheHits`, `executedActions`, and `elapsedMs`.
 
-## Codex Skill
+## Codex Plugin and Skill
 
-The public skill is `skills/computer-use-ultra/SKILL.md`. It teaches Codex to use the bundled Computer Use executor with automatic Jev-or-Laya planning. The legacy `skills/codex-chrome-fast/SKILL.md` remains as a compatibility alias. The bundled Computer Use plugin itself is proprietary and is not modified by this package.
+The distributable plugin is `plugins/computer-use-ultra`; the repository-local marketplace is `.agents/plugins/marketplace.json`. The canonical Skill is `skills/computer-use-ultra/SKILL.md` and is copied into the plugin package. Tests enforce byte-for-byte equality so plugin behavior does not drift. The legacy `skills/codex-chrome-fast/SKILL.md` remains in the npm package only so setup can safely identify old exact copies; setup no longer installs it globally. The bundled Computer Use plugin itself is proprietary and is not modified by this package.
 
 Laya is a local open-source decision model. It removes the network round trip and does not require a Jev key, but its first model load downloads weights and its accuracy depends on the number/language of choices. Jev remains the preferred fallback for large action spaces when a key is configured.
 

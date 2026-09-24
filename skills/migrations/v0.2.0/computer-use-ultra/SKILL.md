@@ -5,8 +5,6 @@ description: Use when Codex needs to operate the current Chrome Computer Use sur
 
 # Computer Use Ultra
 
-Enable or disable this capability from Codex's Plugins settings. The setup CLI configures only the planner and credentials; it does not enable the plugin. When disabled, use Codex's built-in Computer Use normally.
-
 Use Computer Use Ultra when a Codex task asks to operate Chrome: navigate, click, type, select, scroll, or complete a browser goal. Computer Use remains the executor; the planner automatically uses Jev when a Vercel AI Gateway credential is configured and local Laya when it is not.
 
 ## Bootstrap
@@ -36,6 +34,6 @@ The runner uses the current Chrome Computer Use surface. It makes one bounded de
 
 ## Diagnosis
 
-Run `computer-use-ultra doctor` first. It reports planner, Jev credential, remaining standalone legacy Skill copies, and Laya availability without printing the credential. Set `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN` to prefer Jev; otherwise install Laya with `python3 -m pip install laya` and the runner will use it automatically.
+Run `computer-use-ultra doctor` first. It reports planner, Jev credential, Skill, and Laya availability without printing the credential. Set `AI_GATEWAY_API_KEY` or `VERCEL_OIDC_TOKEN` to prefer Jev; otherwise install Laya with `python3 -m pip install laya` and the runner will use it automatically.
 
 Computer Use Ultra is an independent project and is not an official OpenAI or Codex product.

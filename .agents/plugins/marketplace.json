@@ -1,0 +1,20 @@
+{
+  "name": "computer-use-ultra",
+  "interface": {
+    "displayName": "Computer Use Ultra"
+  },
+  "plugins": [
+    {
+      "name": "computer-use-ultra",
+      "source": {
+        "source": "local",
+        "path": "./plugins/computer-use-ultra"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

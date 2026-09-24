@@ -10,9 +10,12 @@ export type CommandRunner = (command: string, args: string[], options?: {
 export declare function resolvePlanner(requested: PlannerMode, credentialConfigured: boolean, _layaAvailable: boolean): PlannerMode;
 export declare function readPlannerConfig(options?: SetupPaths): Promise<PlannerMode | undefined>;
 export declare function writePlannerConfig(mode: PlannerMode, options?: SetupPaths): Promise<void>;
-export declare function installPackagedSkills(options?: SetupPaths): Promise<{
-    installed: string[];
-}>;
+export type StandaloneSkillMigration = {
+    removed: string[];
+    preserved: string[];
+};
+export declare function findStandaloneSkills(options?: SetupPaths): Promise<string[]>;
+export declare function migrateStandaloneSkills(options?: SetupPaths): Promise<StandaloneSkillMigration>;
 export declare function writeGatewayCredential(value: string, options?: SetupPaths & {
     force?: boolean;
 }): Promise<{

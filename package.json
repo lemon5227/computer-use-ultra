@@ -29,6 +29,8 @@
   "files": [
     "dist",
     "skills",
+    "plugins",
+    ".agents/plugins/marketplace.json",
     "scripts",
     "README.md",
     "LICENSE",

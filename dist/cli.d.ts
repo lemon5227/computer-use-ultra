@@ -8,13 +8,16 @@ export type DoctorReportInput = {
     credentialValue?: string;
     planner?: PlannerMode;
     plannerConfig?: PlannerMode;
-    skillInstalled?: boolean;
+    legacySkills?: string[];
     layaAvailable?: boolean;
 };
 export type SetupReportInput = {
     planner: PlannerMode;
     credential: 'configured' | 'missing' | 'not-selected';
-    skills: string[];
+    legacySkills: {
+        removed: string[];
+        preserved: string[];
+    };
     laya: 'available' | 'missing' | 'not-selected';
     credentialValue?: string;
     warning?: string;
