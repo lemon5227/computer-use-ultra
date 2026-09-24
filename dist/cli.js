@@ -120,7 +120,7 @@ async function doctor() {
     const legacySkills = await findStandaloneSkills();
     console.log(formatDoctorReport({
         packageName: 'computer-use-ultra',
-        version: '0.2.0',
+        version: '0.3.0',
         nodeVersion: process.version,
         credentialConfigured: health.ok,
         planner: resolvePlanner(planner ?? 'auto', health.ok, laya.available),

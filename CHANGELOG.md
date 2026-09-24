@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 - 2026-09-24
+
+- Add the toggleable Computer Use Ultra Codex plugin and repository marketplace.
+- Keep planner setup separate from plugin activation; safely remove only exact known standalone Skill copies.
+- Preserve customized standalone Skills and report that they remain outside the plugin toggle.
+
 ## 0.1.0 - 2026-09-20
 
 - Initial Computer Use Ultra release.

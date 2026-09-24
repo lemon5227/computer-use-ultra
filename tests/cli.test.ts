@@ -31,7 +31,7 @@ describe('computer-use-ultra doctor', () => {
   it('reports standalone legacy Skills without claiming plugin activation', () => {
     const report = formatDoctorReport({
       packageName: 'computer-use-ultra',
-      version: '0.2.0',
+      version: '0.3.0',
       nodeVersion: 'v24.12.0',
       credentialConfigured: false,
       legacySkills: ['computer-use-ultra'],
